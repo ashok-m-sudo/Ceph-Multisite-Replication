@@ -43,12 +43,12 @@ The prototype uses two independent Kubernetes clusters, one per site, each runni
                 ┌────────────────────────┴────────────────────────┐
                 │                                                 │
                 ▼                                                 ▼
-   ┌───────────────────────────┐                   ┌───────────────────────────┐
-   │   Site A (primary-node)   │                   │  Site B (secondary-node)  │
-   │   ─────────────────────   │   async replication│  ─────────────────────   │
-   │   Zone: zone-a (master)   │ ◄────────────────► │   Zone: zone-b (replica) │
-   │   RGW: 10.0.0.10:7474     │                    │   RGW: 10.0.0.20:7474    │
-   │   Rook-Ceph on K8s        │                    │   Rook-Ceph on K8s       │
+   ┌───────────────────────────┐                    ┌───────────────────────────┐
+   │   Site A (primary-node)   │                    │  Site B (secondary-node)  │
+   │   ─────────────────────   │  async replication │   ─────────────────────   │
+   │   Zone: zone-a (master)   │ ◄────────────────► │   Zone: zone-b (replica)  │
+   │   RGW: 10.0.0.10:7474     │                    │   RGW: 10.0.0.20:7474     │
+   │   Rook-Ceph on K8s        │                    │   Rook-Ceph on K8s        │
    └───────────────────────────┘                    └───────────────────────────┘
 ```
 
