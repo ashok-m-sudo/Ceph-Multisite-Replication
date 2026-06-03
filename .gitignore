@@ -1,0 +1,15 @@
+# ignore the cloned Rook repo if checked out in-tree
+rook/
+
+# secrets and local overrides — never commit
+*.secret.yaml
+secrets/
+.envrc
+.env
+
+# editor / OS junk
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/

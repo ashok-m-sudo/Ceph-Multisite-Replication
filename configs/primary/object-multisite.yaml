@@ -1,0 +1,68 @@
+# =============================================================================
+# Site A — Primary (Master Zone) multisite object store manifest
+# =============================================================================
+# This file is a sanitized template based on rook/deploy/examples/object-multisite.yaml
+# at Rook v1.16.5. It declares the master realm, zonegroup, zone, and object store.
+#
+# Apply with:
+#   kubectl create -f configs/primary/object-multisite.yaml
+#
+# Companion docs:
+#   - ../../README.md
+#   - ../../docs/deployment-guide.md  (Phase 1, Step 2)
+# =============================================================================
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectRealm
+metadata:
+  name: realm-a
+  namespace: rook-ceph
+# Master realm; no spec.pull block on the primary side.
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZoneGroup
+metadata:
+  name: zonegroup-a
+  namespace: rook-ceph
+spec:
+  realm: realm-a
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZone
+metadata:
+  name: zone-a
+  namespace: rook-ceph
+spec:
+  zoneGroup: zonegroup-a
+  metadataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+  dataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+    parameters:
+      compression_mode: none
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: multisite-store
+  namespace: rook-ceph
+spec:
+  # NOTE: when binding to a zone, metadataPool/dataPool are managed by the zone,
+  # not here. Leave them empty on the object store.
+  metadataPool: {}
+  dataPool: {}
+  preservePoolsOnDelete: true
+  gateway:
+    port: 7474
+    instances: 1
+    # priorityClassName: system-cluster-critical
+  zone:
+    name: zone-a

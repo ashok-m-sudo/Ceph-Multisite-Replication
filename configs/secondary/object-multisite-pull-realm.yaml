@@ -1,0 +1,86 @@
+# =============================================================================
+# Site B — Secondary (Replica Zone) pull-realm manifest
+# =============================================================================
+# This file is a sanitized template based on
+# rook/deploy/examples/object-multisite-pull-realm.yaml at Rook v1.16.5.
+#
+# It tells Rook on the secondary site to:
+#   1. Pull realm-a from the master endpoint http://10.0.0.10:7474
+#      using the synchronization-user credentials.
+#   2. Declare zone-b under the existing zonegroup-a.
+#   3. Stand up a CephObjectStore bound to zone-b.
+#
+# Apply with:
+#   kubectl create -f configs/secondary/object-multisite-pull-realm.yaml
+#
+# Companion docs:
+#   - ../../docs/deployment-guide.md  (Phase 2, Step 1–2)
+# =============================================================================
+
+---
+# Secret holding the synchronization-user's access/secret keys.
+# Replace the placeholder values with the keys printed by:
+#   radosgw-admin user create --uid=synchronization-user --system ...
+apiVersion: v1
+kind: Secret
+metadata:
+  name: realm-a-keys
+  namespace: rook-ceph
+stringData:
+  access-key: REPLACE_WITH_SYSTEM_USER_ACCESS_KEY
+  secret-key: REPLACE_WITH_SYSTEM_USER_SECRET_KEY
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectRealm
+metadata:
+  name: realm-a
+  namespace: rook-ceph
+spec:
+  pull:
+    endpoint: http://10.0.0.10:7474
+  # The operator reads keys from the Secret named "<realm-name>-keys" by default.
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZoneGroup
+metadata:
+  name: zonegroup-a
+  namespace: rook-ceph
+spec:
+  realm: realm-a
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectZone
+metadata:
+  name: zone-b
+  namespace: rook-ceph
+spec:
+  zoneGroup: zonegroup-a
+  metadataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+  dataPool:
+    replicated:
+      size: 1
+      requireSafeReplicaSize: false
+    parameters:
+      compression_mode: none
+
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: zone-b-multisite-store
+  namespace: rook-ceph
+spec:
+  metadataPool: {}
+  dataPool: {}
+  preservePoolsOnDelete: true
+  gateway:
+    port: 7474
+    instances: 1
+  zone:
+    name: zone-b
