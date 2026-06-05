@@ -1,0 +1,34 @@
+# =============================================================================
+# Site B — RGW external-IP service for the secondary zone
+# =============================================================================
+# Exposes the rook-ceph-rgw pod for `zone-b-multisite-store` on 10.0.0.20:7474
+# so the master site can reach it for bidirectional metadata sync and so the
+# zone endpoint can be registered against zonegroup-a.
+#
+# Apply with:
+#   kubectl create -f configs/secondary/rgw-external.yaml
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-rgw-zone-b-multisite-store-external
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-rgw
+    rook_cluster: rook-ceph
+    rook_object_store: zone-b-multisite-store
+spec:
+  type: ClusterIP
+  ports:
+    - name: rgw
+      port: 7474
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: rook-ceph-rgw
+    rook_cluster: rook-ceph
+    rook_object_store: zone-b-multisite-store
+  sessionAffinity: None
+  externalIPs:
+    - 10.0.0.20

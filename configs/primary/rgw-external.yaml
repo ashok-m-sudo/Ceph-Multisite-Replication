@@ -1,0 +1,38 @@
+# =============================================================================
+# Site A — RGW external-IP service for the master zone
+# =============================================================================
+# Exposes the rook-ceph-rgw pod for `multisite-store` on 10.0.0.10:7474 so the
+# secondary site can reach it for realm pulls and data sync.
+#
+# Apply with:
+#   kubectl create -f configs/primary/rgw-external.yaml
+#
+# After applying, edit the service to attach the external IP:
+#   kubectl edit svc rook-ceph-rgw-multisite-store-external -n rook-ceph
+#   # add:
+#   #   spec.externalIPs: [10.0.0.10]
+# =============================================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rook-ceph-rgw-multisite-store-external
+  namespace: rook-ceph
+  labels:
+    app: rook-ceph-rgw
+    rook_cluster: rook-ceph
+    rook_object_store: multisite-store
+spec:
+  type: ClusterIP    # externalIPs is set post-apply via `kubectl edit`
+  ports:
+    - name: rgw
+      port: 7474
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: rook-ceph-rgw
+    rook_cluster: rook-ceph
+    rook_object_store: multisite-store
+  sessionAffinity: None
+  externalIPs:
+    - 10.0.0.10
